@@ -3,6 +3,9 @@ package br.edu.scl.ifsp.sdm.lifecycle
 import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
+import android.os.Message
 import android.os.PersistableBundle
 import android.util.Log
 import android.widget.EditText
@@ -10,6 +13,7 @@ import androidx.core.view.children
 import androidx.core.widget.doAfterTextChanged
 import br.edu.scl.ifsp.sdm.lifecycle.databinding.ActivityMainBinding
 import br.edu.scl.ifsp.sdm.lifecycle.databinding.TilePhoneBinding
+import java.lang.Thread.sleep
 
 class MainActivity : AppCompatActivity() {
     private val activityMainBinding: ActivityMainBinding by lazy {
@@ -18,10 +22,24 @@ class MainActivity : AppCompatActivity() {
 
     private var filledChars:Int = 0 // Variavel que conta as vezes que modificamos o name edittext
 
+    // Criando um handler
+    private val nameHandler = object: Handler(Looper.myLooper()!!){
+        override fun handleMessage(msg: Message) {
+            super.handleMessage(msg)
+
+            msg.data.getString(NAME).let{
+                activityMainBinding.nameEt.setText(it)
+            }
+
+        }
+    }
+
+
     //Criando (singleton)
     companion object{
         const val FILLED_CHARS = "FILLER_CHARS"
         const val PHONES = "PHONES"
+        const val NAME = "NAME"
     }
 
 
@@ -58,6 +76,25 @@ class MainActivity : AppCompatActivity() {
         supportActionBar?.subtitle = getString(R.string.main)
 
         Log.v(getString(R.string.app_name), "Main - onCreate(): INÍCIO COMPLETO")
+
+        // Simulando o acesso a um WebService
+        Thread{
+            sleep(3000)
+
+            /*runOnUiThread{
+                activityMainBinding.nameEt.setText("SDM")
+            }*/
+
+            // Enviar mensagem para o handler
+            nameHandler.also {
+                it.sendMessage(Message.obtain(it).apply {
+                    data = Bundle().apply {
+                        putString(NAME, "SDM")
+                    }
+                })
+            }
+
+        }.start()
 
     }
 
